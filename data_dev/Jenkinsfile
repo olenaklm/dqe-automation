@@ -5,15 +5,15 @@ pipeline {
             steps {
                 script {
                     // Update the package list
-                    sh 'sudo apt-get update'
-                    sh 'sudo apt-get install -y libpq-dev'
+                    sh 'apt-get update'
+                    sh 'apt-get install -y libpq-dev'
                 }
             }
         }
         stage('Install Python') {
             steps {
                 // Install Python and pip
-                sh 'sudo apt-get install -y python3 python3-pip python3-venv'
+                sh 'apt-get install -y python3 python3-pip python3-venv'
             }
         }
         stage('Clone Repository') {
