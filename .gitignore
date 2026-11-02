@@ -1,0 +1,3 @@
+start-dqe.sh
+docker-compose_.yml
+.venv/
