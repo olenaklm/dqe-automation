@@ -1,7 +1,10 @@
 ---
 name: generate-parquet-dq-tests
 description: >-
-  Use when explicitly asked to generate a PyTest DQ module for a Parquet dataset from the project mapping. Creates one dataset test module and refuses to rewrite framework, Jenkins, or pytest configuration.
+  Use when explicitly asked to generate a PyTest DQ module for a Parquet dataset
+  from the project mapping. Creates one dataset test module and refuses to
+  rewrite framework code, Jenkins, conftest.py, pytest configuration, or shared
+  DQ libraries.
 disable-model-invocation: true
 ---
 
@@ -15,7 +18,7 @@ Complete this skill as **Step 2** of the PyTest DQ assignment. Read first:
 **Do not** paste expected SQL for the three named datasets into this skill.  
 **Do not** instruct the agent to copy SQL from `data_dev/`.
 
-When finished, every `TODO` below must be replaced. Run the **Skill review** checklist before using the skill to generate tests.
+When finished, all instruction placeholders must be replaced. Run the **Skill review** checklist before using the skill to generate tests.
 
 ## When this skill applies
 
@@ -29,7 +32,13 @@ The framework must already provide the fixtures and library methods listed in th
 2. Mapping details for that dataset: target columns, grain, source tables and columns, joins, measures, and any stated filters.
 3. Author and requirement identifier for the module header, when provided. Otherwise keep explicit neutral placeholders rather than inventing a person or ticket.
 
-Read PyTest DQ Framework/docs/test-automation-strategy.md sections 5 and 6, the framework design, and the mapping before writing the module. If any required mapping detail is absent, ask instead of consulting ETL implementation code.
+Read the following before writing the module:
+
+- PyTest DQ Framework/docs/test-automation-strategy.md sections 5 and 6;
+- PyTest DQ Framework/docs/dq-framework-design.md;
+- docs/parquet-aggregated-data-mapping.md.
+
+If any required mapping detail is absent, ask instead of consulting ETL implementation code.
 
 ## Hard rules
 
@@ -40,7 +49,7 @@ Read PyTest DQ Framework/docs/test-automation-strategy.md sections 5 and 6, the 
 5. Match every selected source column, alias, join, grouping dimension, measure, and mapping-defined filter to the mapping. Do not add pipeline-only filters, unions, case expressions, or sign changes.
 6. Use the existing fixtures db_connection, parquet_reader, and data_quality_library and only the library methods in TAS §6.4. Do not reimplement pandas checks inside a generated test.
 7. Read the target from /parquet_data/<dataset_name> with include_subfolders=True.
-8. Generate smoke, completeness, count, uniqueness, and not-null tests. Use grain columns for uniqueness and all mapped target columns for not-null checks.
+8. Generate smoke, completeness, count, uniqueness, and not-null tests. Use the existing check_duplicates library method without reimplementing duplicate logic in the generated test. Use all mapping-required target columns for not-null checks.
 9. Mark every generated test with parquet_data and the dataset-specific mark. Add smoke only to the non-empty smoke test.
 10. Never weaken or change expected SQL to make a test pass. Report mismatches as mapping-versus-Parquet or transformation defects.
 
@@ -50,7 +59,7 @@ Read PyTest DQ Framework/docs/test-automation-strategy.md sections 5 and 6, the 
 2. Extract its target schema, grain, source tables, join keys, measures, and only the filters written in the mapping.
 3. Independently derive a PostgreSQL SELECT: join the mapped tables, select each target dimension and measure, alias columns to target names, and group by the mapped grain.
 4. Create the module using the template below. Replace every placeholder for the selected dataset without changing the fixture direction or library API.
-5. Set the target path to /parquet_data/<dataset_name>, pass include_subfolders=True, and use mapping-required target column names in the not-null DQ call..
+5. Set the target path to /parquet_data/<dataset_name>, pass include_subfolders=True, and use mapping-required target column names in the not-null DQ call.
 6. Add all required markers and descriptive assertion context through the library methods.
 7. Review the generated SQL and module against the mapping and self-review checklist. Do not edit any other file.
 
@@ -70,49 +79,66 @@ import pytest
 
 @pytest.fixture(scope="module")
 def source_data(db_connection):
-  source_query = """
-  -- Derive this query from the selected mapping only.
-  """
-  return db_connection.get_data_sql(source_query)
+    source_query = """
+    -- Derive this query from the selected mapping only.
+    """
+    return db_connection.get_data_sql(source_query)
 
 
 @pytest.fixture(scope="module")
 def target_data(parquet_reader):
-  target_path = "/parquet_data/<dataset_name>"
-  return parquet_reader.process(target_path, include_subfolders=True)
+    target_path = "/parquet_data/<dataset_name>"
+    return parquet_reader.process(
+        target_path,
+        include_subfolders=True,
+    )
 
 
 @pytest.mark.parquet_data
 @pytest.mark.smoke
 @pytest.mark.<dataset_name>
 def test_check_dataset_is_not_empty(target_data, data_quality_library):
-  data_quality_library.check_dataset_is_not_empty(target_data)
+    data_quality_library.check_dataset_is_not_empty(target_data)
 
 
 @pytest.mark.parquet_data
 @pytest.mark.<dataset_name>
-def test_check_data_completeness(source_data, target_data, data_quality_library):
-  data_quality_library.check_data_completeness(source_data, target_data)
+def test_check_data_completeness(
+    source_data,
+    target_data,
+    data_quality_library,
+):
+    data_quality_library.check_data_completeness(
+        source_data,
+        target_data,
+    )
 
 
 @pytest.mark.parquet_data
 @pytest.mark.<dataset_name>
 def test_check_count(source_data, target_data, data_quality_library):
-  data_quality_library.check_count(source_data, target_data)
+    data_quality_library.check_count(
+        source_data,
+        target_data,
+    )
 
 
 @pytest.mark.parquet_data
 @pytest.mark.<dataset_name>
 def test_check_uniqueness(target_data, data_quality_library):
-  data_quality_library.check_duplicates(target_data, ["<grain_column_1>"])
+    data_quality_library.check_duplicates(target_data)
 
 
 @pytest.mark.parquet_data
 @pytest.mark.<dataset_name>
 def test_check_not_null_values(target_data, data_quality_library):
-  data_quality_library.check_not_null_values(
-    target_data, ["<mapped_column_1>", "<mapped_column_2>"]
-  )
+    data_quality_library.check_not_null_values(
+        target_data,
+        [
+            "<mapped_column_1>",
+            "<mapped_column_2>",
+        ],
+    )
 ```
 
 ## SQL derivation (generic)
@@ -121,16 +147,19 @@ Use mapping-defined source tables and join keys. Select the mapped dimensions at
 
 ## After generation
 
-Run pytest only when asked or when execution is part of the active assignment. A missing local dataset or unavailable database is an environment blocker, not permission to replace source or target data with mocks. Preserve failed DQ results and explain them against the mapping; never rewrite expected SQL just to obtain a green run.
+Run pytest only when the user explicitly requests test execution. A missing local dataset or unavailable database is an environment blocker, not permission to replace source or target data with mocks. Preserve failed DQ results and explain them against the mapping; never rewrite expected SQL just to obtain a green run.
 
 ---
 
+## Skill review (self-check before Step 3)
 ## Skill review (self-check before Step 3)
 
 Reject your own skill if any of these are true:
 
 - [ ] Contains concrete expected SQL for `facility_name_min_time_spent_per_visit_date`, `facility_type_avg_time_spent_per_visit_date`, or `patient_sum_treatment_cost_per_facility_type`
-- [ ] Tells the agent to use `data_dev/` or parquet loader SQL
-- [ ] Omits completeness, count, uniqueness, or not-null
-- [ ] Swaps Postgres vs Parquet fixtures or generates trivial always-pass checks
-- [ ] Any section still says `TODO`
+- [ ] Tells the agent to use `data_dev/` or Parquet loader SQL
+- [ ] Omits completeness, count, uniqueness, not-null, or smoke checks
+- [ ] Swaps PostgreSQL expected/source data with Parquet actual/target data
+- [ ] Does not use the shared DQ library methods
+- [ ] Generates trivial always-pass checks such as `assert True`
+- [ ] Any section still contains an unfinished instruction placeholder
