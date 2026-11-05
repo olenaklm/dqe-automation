@@ -15,3 +15,8 @@ PyTest DQ Framework/tests/__pycache__/conftest.cpython-310-pytest-8.4.2.pyc
 PyTest DQ Framework/tests/__pycache__/test_examples.cpython-310-pytest-8.4.2.pyc
 PyTest DQ Framework/tests/dq checks/parquet_files/__pycache__/__init__.cpython-310.pyc
 PyTest DQ Framework/tests/dq checks/parquet_files/__pycache__/test_facility_name_min_time_spent_per_visit_date.cpython-310-pytest-8.4.2.pyc
+.vscode/settings.json
+PyTest Introduction/tests/__pycache__/__init__.cpython-314.pyc
+PyTest Introduction/tests/__pycache__/conftest.cpython-314-pytest-9.1.1.pyc
+PyTest Introduction/tests/test_csv/__pycache__/__init__.cpython-314.pyc
+PyTest Introduction/tests/test_csv/__pycache__/test_csv_file.cpython-314-pytest-9.1.1.pyc
