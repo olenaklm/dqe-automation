@@ -1,7 +1,7 @@
 """
 Description: Data Quality checks for facility_type_avg_time_spent_per_visit_date dataset.
-Requirement(s): <requirement_id>
-Author(s): <author>
+Requirement(s): Not specified
+Author(s): Not specified
 """
 
 import pytest
@@ -12,14 +12,17 @@ def source_data(db_connection):
     source_query = """
     SELECT
         f.facility_type AS facility_type,
-        v.visit_timestamp::date AS visit_date,
+        CAST(v.visit_timestamp AS DATE) AS visit_date,
         ROUND(AVG(v.duration_minutes), 2) AS avg_time_spent
     FROM facilities AS f
-    JOIN visits AS v
-        ON v.facility_id = f.facility_id
+    INNER JOIN visits AS v
+        ON v.facility_id = f.id
     GROUP BY
         f.facility_type,
-        v.visit_timestamp::date
+        CAST(v.visit_timestamp AS DATE)
+    ORDER BY
+        f.facility_type,
+        CAST(v.visit_timestamp AS DATE)
     """
     return db_connection.get_data_sql(source_query)
 
