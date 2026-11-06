@@ -51,24 +51,40 @@ pipeline {
         }
 
         stage('Install Dependencies') {
-            steps {
-                dir('PyTest DQ Framework') {
-                    sh '''
-                        set -eu
+    steps {
+        dir('PyTest DQ Framework') {
+            sh '''
+                set -eu
 
-                        rm -rf .venv
+                python3 --version
 
-                        python3 -m venv .venv
+                rm -rf .venv
 
-                        . .venv/bin/activate
+                python3 -m venv .venv
 
-                        python -m pip install --upgrade pip
+                . .venv/bin/activate
 
-                        python -m pip install -r requirements.txt
-                    '''
-                }
-            }
+                python -m pip install --upgrade pip setuptools wheel
+
+                python -m pip install \
+                    --only-binary=:all: \
+                    -r requirements.txt
+
+                python -c "
+import pandas
+import psycopg2
+import pyarrow
+import pytest
+
+print('pandas:', pandas.__version__)
+print('psycopg2:', psycopg2.__version__)
+print('pyarrow:', pyarrow.__version__)
+print('pytest:', pytest.__version__)
+"
+            '''
         }
+    }
+}
 
         stage('Run Parquet DQ Tests') {
             steps {
