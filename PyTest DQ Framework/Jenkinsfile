@@ -1,0 +1,144 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(
+            name: 'DB_NAME',
+            defaultValue: '',
+            description: 'PostgreSQL database name. Use the value of POSTGRES_DB from the PostgreSQL container.'
+        )
+    }
+
+    options {
+        timestamps()
+        skipDefaultCheckout(true)
+    }
+
+    stages {
+        stage('Checkout Repository') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Validate Pipeline Parameters') {
+            steps {
+                script {
+                    if (!params.DB_NAME?.trim()) {
+                        error(
+                            'DB_NAME parameter is required. ' +
+                            'Provide the PostgreSQL database name from POSTGRES_DB.'
+                        )
+                    }
+                }
+            }
+        }
+
+        stage('Verify Parquet Prerequisites') {
+            steps {
+                sh '''
+                    set -eu
+
+                    test -d /parquet_data
+
+                    find /parquet_data \
+                        -type f \
+                        -iname "*.parquet" \
+                        -print \
+                        -quit | grep -q .
+                '''
+            }
+        }
+
+        stage('Install Dependencies') {
+    steps {
+        dir('PyTest DQ Framework') {
+            sh '''
+                set -eu
+
+                python3 --version
+
+                rm -rf .venv
+
+                python3 -m venv .venv
+
+                . .venv/bin/activate
+
+                python -m pip install --upgrade pip setuptools wheel
+
+                python -m pip install \
+                    --only-binary=:all: \
+                    -r requirements.txt
+
+                python -c "
+import pandas
+import psycopg2
+import pyarrow
+import pytest
+
+print('pandas:', pandas.__version__)
+print('psycopg2:', psycopg2.__version__)
+print('pyarrow:', pyarrow.__version__)
+print('pytest:', pytest.__version__)
+"
+            '''
+        }
+    }
+}
+
+        stage('Run Parquet DQ Tests') {
+            steps {
+                dir('PyTest DQ Framework') {
+                    withCredentials([
+                        usernamePassword(
+                            credentialsId: 'POSTGRES_SECRET',
+                            usernameVariable: 'POSTGRES_USER',
+                            passwordVariable: 'POSTGRES_PASSWORD'
+                        )
+                    ]) {
+                        sh '''
+                            set -eu
+                            set +x
+
+                            mkdir -p html_report
+
+                            . .venv/bin/activate
+
+                            python -m pytest tests \
+                                -m "parquet_data" \
+                                --db_host="postgres" \
+                                --db_port="5432" \
+                                --db_name="$DB_NAME" \
+                                --db_user="$POSTGRES_USER" \
+                                --db_password="$POSTGRES_PASSWORD" \
+                                --html=html_report/index.html \
+                                --self-contained-html
+                        '''
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            archiveArtifacts(
+                artifacts: 'PyTest DQ Framework/html_report/**',
+                allowEmptyArchive: true,
+                fingerprint: true
+            )
+
+            publishHTML(
+                target: [
+                    allowMissing: true,
+                    alwaysLinkToLastBuild: true,
+                    keepAll: true,
+                    reportDir: 'PyTest DQ Framework/html_report',
+                    reportFiles: 'index.html',
+                    reportName: 'Parquet DQ HTML Report',
+                    reportTitles: 'PyTest Parquet Data Quality Report'
+                ]
+            )
+        }
+    }
+}

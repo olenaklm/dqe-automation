@@ -1,0 +1,25 @@
+start-dqe.sh
+docker-compose_.yml
+.venv/
+PyTest DQ Framework/src/__pycache__/__init__.cpython-310.pyc
+.gitignore
+PyTest DQ Framework/src/connectors/__pycache__/__init__.cpython-310.pyc
+PyTest DQ Framework/src/connectors/file_system/__pycache__/__init__.cpython-310.pyc
+PyTest DQ Framework/src/connectors/file_system/__pycache__/parquet_reader.cpython-310.pyc
+PyTest DQ Framework/src/connectors/postgres/__pycache__/__init__.cpython-310.pyc
+PyTest DQ Framework/src/connectors/postgres/__pycache__/postgres_connector.cpython-310.pyc
+PyTest DQ Framework/src/data_quality/__pycache__/__init__.cpython-310.pyc
+PyTest DQ Framework/src/data_quality/__pycache__/data_quality_validation_library.cpython-310.pyc
+PyTest DQ Framework/tests/__pycache__/__init__.cpython-310.pyc
+PyTest DQ Framework/tests/__pycache__/conftest.cpython-310-pytest-8.4.2.pyc
+PyTest DQ Framework/tests/__pycache__/test_examples.cpython-310-pytest-8.4.2.pyc
+PyTest DQ Framework/tests/dq checks/parquet_files/__pycache__/__init__.cpython-310.pyc
+PyTest DQ Framework/tests/dq checks/parquet_files/__pycache__/test_facility_name_min_time_spent_per_visit_date.cpython-310-pytest-8.4.2.pyc
+.vscode/settings.json
+PyTest Introduction/tests/__pycache__/__init__.cpython-314.pyc
+PyTest Introduction/tests/__pycache__/conftest.cpython-314-pytest-9.1.1.pyc
+PyTest Introduction/tests/test_csv/__pycache__/__init__.cpython-314.pyc
+PyTest Introduction/tests/test_csv/__pycache__/test_csv_file.cpython-314-pytest-9.1.1.pyc
+PyTest DQ Framework/tests/dq checks/__pycache__/__init__.cpython-310.pyc
+PyTest DQ Framework/tests/dq checks/parquet_files/__pycache__/test_patient_sum_treatment_cost_per_facility_type.cpython-310-pytest-8.4.2.pyc
+PyTest DQ Framework/tests/dq checks/parquet_files/__pycache__/test_facility_type_avg_time_spent_per_visit_date.cpython-310-pytest-8.4.2.pyc

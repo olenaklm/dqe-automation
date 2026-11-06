@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:15
+    image: docker.io/library/postgres:15
     container_name: postgres
     environment:
       POSTGRES_USER: myuser
@@ -16,7 +16,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   jenkins:
-    image: jenkins/jenkins:lts
+    image: docker.io/jenkins/jenkins:lts
     container_name: jenkins
     user: "0"  # Run as root user
     networks:
@@ -29,6 +29,7 @@ services:
 
 networks:
   tafordqenetwork:
+    name: tafordqenetwork
     driver: bridge
 
 volumes:
