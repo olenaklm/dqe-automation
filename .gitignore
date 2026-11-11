@@ -1,0 +1,5 @@
+.vscode/settings.json
+PyTest Introduction/tests/__pycache__/__init__.cpython-314.pyc
+PyTest Introduction/tests/__pycache__/conftest.cpython-314-pytest-9.1.1.pyc
+PyTest Introduction/tests/test_csv/__pycache__/__init__.cpython-314.pyc
+PyTest Introduction/tests/test_csv/__pycache__/test_csv_file.cpython-314-pytest-9.1.1.pyc
