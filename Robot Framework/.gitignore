@@ -1,1 +1,19 @@
-results
+# Python virtual environment
+.venv/
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Robot Framework execution output
+result/
+
+# Local Parquet data copied from the container
+parquet_data/
+
+# IDE and OS files
+.idea/
+.vscode/
+.DS_Store
